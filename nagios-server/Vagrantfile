@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
   config.vm.network :private_network, ip: "33.33.33.200"
 
   # AVOID PROBLEMS HAVING A DIFF HOSTNAME BY VM RUNNING
-  config.vm.hostname = "nagios-monitor"
+  config.vm.hostname = "nagios-server"
 
   config.vm.provider :virtualbox do |vbox|
     vbox.customize ["modifyvm", :id, "--memory", "1024"]
@@ -20,13 +20,13 @@ Vagrant.configure("2") do |config|
     sudo apt-get update
 
     # Install Nagios
-    #sudo apt install -y nagios3 nagios-nrpe-plugin
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y nagios3 nagios-nrpe-plugin
+
+    # To create Nagios users
+    sudo htpasswd -b -c /etc/nagios3/htpasswd.users nagiosadmin NAGIOS_PWD
 
     # Update password of Nagios user
-    #sudo htpasswd -b /etc/nagios3/htpasswd.users nagiosadmin NAGIOS_PWD
-
-    # To add new Nagios users
-    # sudo htpasswd /etc/nagios3/htpasswd.users NEW_USER
+    # sudo htpasswd -b /etc/nagios3/htpasswd.users nagiosadmin NEW_NAGIOS_PWD
 
   SHELL
 
