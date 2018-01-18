@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
   config.vm.box_version = "20170119.1.0"
 
   # AVOID PROBLEMS HAVING A DIFF IP PER VM RUNNING
-  config.vm.network :private_network, ip: "33.33.33.200"
+  config.vm.network :private_network, ip: "33.33.33.100"
 
   # AVOID PROBLEMS HAVING A DIFF HOSTNAME BY VM RUNNING
   config.vm.hostname = "nagios-server"
@@ -46,7 +46,16 @@ def check_restart_required():
 
 if __name__ == '__main__':
     check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_restart_required
+    
     sudo chmod a+x /usr/lib/nagios/plugins/check_restart_required
+
+    echo "
+# 'check-restart-required'
+define command{
+  command_name  check_restart_required
+  command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required 
+}
+" | sudo tee -a /etc/nagios3/commands.cfg
     ############################
     #### End creating plugin ###
     ############################
