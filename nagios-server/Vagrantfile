@@ -28,6 +28,29 @@ Vagrant.configure("2") do |config|
     # Update password of Nagios user
     # sudo htpasswd -b /etc/nagios3/htpasswd.users nagiosadmin NEW_NAGIOS_PWD
 
+    ############################
+    ### Create custom plugin ###
+    ############################
+    sudo touch /usr/lib/nagios/plugins/check_restart_required
+    echo "#!/usr/bin/env python3
+
+import os, socket
+
+def check_restart_required():
+    if os.path.exists('/var/run/reboot-required'):
+        print('*** System restart required *** ')
+        exit(2)
+    print('OK, no system restart needed')
+    exit(0)
+
+
+if __name__ == '__main__':
+    check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_restart_required
+    sudo chmod a+x /usr/lib/nagios/plugins/check_restart_required
+    ############################
+    #### End creating plugin ###
+    ############################
+
   SHELL
 
 end
