@@ -31,7 +31,7 @@ Vagrant.configure("2") do |config|
     ############################
     ### Create custom plugin ###
     ############################
-    sudo touch /usr/lib/nagios/plugins/check_restart_required
+    sudo touch /usr/lib/nagios/plugins/check_local_restart_required
     echo "#!/usr/bin/env python3
 
 import os, socket
@@ -45,20 +45,35 @@ def check_restart_required():
 
 
 if __name__ == '__main__':
-    check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_restart_required
-    
-    sudo chmod a+x /usr/lib/nagios/plugins/check_restart_required
-
-    echo "
-# 'check-restart-required'
-define command{
-  command_name  check_restart_required
-  command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required 
-}
-" | sudo tee -a /etc/nagios3/commands.cfg
+    check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_local_restart_required
     ############################
     #### End creating plugin ###
     ############################
+
+    # Fix permission of plugin
+    sudo chmod a+x /usr/lib/nagios/plugins/check_local_restart_required
+
+    # Enable command check_local_restart_required to use our custom plugin
+    echo "
+# 'check-restart-required'
+define command{
+  command_name  check_local_restart_required
+  command_line  /usr/lib/nagios/plugins/check_local_restart_required 
+}
+" | sudo tee -a /etc/nagios3/commands.cfg
+
+    # Add check_local_restart_required service check to Nagios3 server(localhost)
+    echo "
+# Custom check for system restart required.
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       localhost
+        service_description             System Restart Required
+                check_command                   check_local_restart_required
+        }" | sudo tee -a /etc/nagios3/conf.d/localhost_nagios2.cfg
+
+    # Restart Nagios3 service
+    sudo service nagios3 restart
 
   SHELL
 
