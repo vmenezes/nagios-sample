@@ -72,6 +72,81 @@ define service{
                 check_command                   check_local_restart_required
         }" | sudo tee -a /etc/nagios3/conf.d/localhost_nagios2.cfg
 
+    # Add command to check restart required on remote servers thru NRPE
+    echo "
+# 'check-restart-required'
+define command{
+  command_name  check_restart_required
+  command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required 
+}" | sudo tee -a /etc/nagios3/commands.cfg
+
+    # Create config file to monitor cli-01 server
+    sudo touch /etc/nagios3/conf.d/cli-01.cfg
+
+    echo "define host{
+        use                     generic-host            ; Name of host template to use
+        host_name               cli-01
+        alias                   cli-01
+        address                 33.33.33.101
+        }
+
+# Define a service to check the disk space of the root partition
+# on the local machine.  Warning if < 20% free, critical if
+# < 10% free space on partition.
+
+#define service{
+#        use                             generic-service         ; Name of service template to use
+#        host_name                       cli-01
+#        service_description             Disk Space
+#        check_command                   check_nrpe!check_sda1!20%!10%
+#        }
+#define service{
+#        use                             generic-service         ; Name of service template to use
+#        host_name                       cli-01
+#        service_description             Disk Space
+#        check_command                   check_disk!20!10!/dev/sda1
+#        }
+
+# Define a service to check the number of currently logged in
+# users on the local machine.  Warning if > 20 users, critical
+# if > 50 users.
+
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       cli-01
+        service_description             Current Users
+        check_command                   check_nrpe!check_users
+        }
+
+# Define a service to check the number of currently running procs
+# on the local machine.  Warning if > 250 processes, critical if
+# > 400 processes.
+
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       cli-01
+        service_description             Total Processes
+    check_command                   check_nrpe!check_total_procs!250!400
+        }
+
+# Define a service to check the load on the local machine. 
+
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       cli-01
+        service_description             Current Load
+    check_command                   check_total_load!15,10,5!30,25,20
+        }
+
+# Custom check for system restart required.
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       cli-01
+        service_description             System Restart Required
+                check_command                   check_restart_required
+        }
+" | sudo tee /etc/nagios3/conf.d/cli-01.cfg
+
     # Restart Nagios3 service
     sudo service nagios3 restart
 
