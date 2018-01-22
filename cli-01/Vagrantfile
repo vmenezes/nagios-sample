@@ -19,46 +19,49 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update
 
-    # Install Nagios NRPE
-    sudo apt install -y nagios-nrpe-server
+    sudo useradd myuser -p "$(openssl passwd mypwd)" -m -G sudo
+    echo "myuser ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/90-cloud-init-users
 
-    # Config NRPE
-    sudo sed -i 's/allowed_hosts=127.0.0.1/allowed_hosts=33.33.33.100/g' /etc/nagios/nrpe.cfg
-    sudo sed -i '' 's/^dont_blame_nrpe=.*/dont_blame_nrpe=1/g' /usr/local/nagios/etc/nrpe.cfg
+#     # Install Nagios NRPE
+#     sudo apt install -y nagios-nrpe-server
 
-    #############################
-    ### Add custom NRPE plugin ##
-    #############################
-    echo "#!/usr/bin/env python3
+#     # Config NRPE
+#     sudo sed -i 's/allowed_hosts=127.0.0.1/allowed_hosts=33.33.33.100/g' /etc/nagios/nrpe.cfg
+#     sudo sed -i '' 's/^dont_blame_nrpe=.*/dont_blame_nrpe=1/g' /usr/local/nagios/etc/nrpe.cfg
 
-import os, socket
+#     #############################
+#     ### Add custom NRPE plugin ##
+#     #############################
+#     echo "#!/usr/bin/env python3
 
-def check_restart_required():
-    if os.path.exists('/var/run/reboot-required'):
-        print('*** System restart required *** {}'.format(socket.gethostname()))
-        exit(2)
-    print('OK, no system restart needed. {}'.format(socket.gethostname()))
-    exit(0)
+# import os, socket
+
+# def check_restart_required():
+#     if os.path.exists('/var/run/reboot-required'):
+#         print('*** System restart required *** {}'.format(socket.gethostname()))
+#         exit(2)
+#     print('OK, no system restart needed. {}'.format(socket.gethostname()))
+#     exit(0)
 
 
-if __name__ == '__main__':
-    check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_restart_required
-    ##############################
-    ### End custom NRPE plugin ###
-    ##############################
+# if __name__ == '__main__':
+#     check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_restart_required
+#     ##############################
+#     ### End custom NRPE plugin ###
+#     ##############################
 
-    # Fix permissions of plugin
-    sudo chmod a+x /usr/lib/nagios/plugins/check_restart_required
+#     # Fix permissions of plugin
+#     sudo chmod a+x /usr/lib/nagios/plugins/check_restart_required
 
-    # Add custom NRPE command for our newly created plugin and more
-    echo "command[check_restart_required]=/usr/lib/nagios/plugins/check_restart_required" | sudo tee -a /etc/nagios/nrpe_local.cfg
-    echo "command[check_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$" | sudo tee -a /etc/nagios/nrpe_local.cfg
-    echo "command[check_total_load]=/usr/lib/nagios/plugins/check_load -w $ -c $" | sudo tee -a /etc/nagios/nrpe_local.cfg
-    echo "command[check_total_procs]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$" | sudo tee -a /etc/nagios/nrpe_local.cfg
+#     # Add custom NRPE command for our newly created plugin and more
+#     echo "command[check_restart_required]=/usr/lib/nagios/plugins/check_restart_required" | sudo tee -a /etc/nagios/nrpe_local.cfg
+#     echo "command[check_disk]=/usr/lib/nagios/plugins/check_disk -w $ARG1$ -c $ARG2$ -p $ARG3$" | sudo tee -a /etc/nagios/nrpe_local.cfg
+#     echo "command[check_total_load]=/usr/lib/nagios/plugins/check_load -w $ -c $" | sudo tee -a /etc/nagios/nrpe_local.cfg
+#     echo "command[check_total_procs]=/usr/lib/nagios/plugins/check_procs -w $ARG1$ -c $ARG2$ -s $ARG3$" | sudo tee -a /etc/nagios/nrpe_local.cfg
 
-    # Check service
-    # service nagios-nrpe-server status
-    service nagios-nrpe-server restart
+#     # Check service
+#     # service nagios-nrpe-server status
+#     service nagios-nrpe-server restart
 
   SHELL
 
