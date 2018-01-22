@@ -1,0 +1,25 @@
+---
+  - name: Install NRPE server
+    apt: name=nagios-nrpe-server
+
+  - name: Sets the address of Nagios3 server
+    lineinfile:
+      dest: /etc/nagios/nrpe.cfg
+      regexp: '^\s*allowed_hosts=127.0.0.1.*$'
+      line: 'allowed_hosts=33.33.33.100'
+      backrefs: yes
+    notify:
+    - restart NRPE server
+
+  - name: Copy nrpe_local.cfg to enable some extra commands thru NRPE
+    template: src=nrpe_local.cfg
+      dest=/etc/nagios/nrpe_local.cfg
+    notify:
+    - restart NRPE server
+
+  # - name: Enables dont_blame_nrpe that allows client to specify args
+  #   lineinfile:
+  #     dest: /etc/nagios/nrpe.cfg
+  #     regexp: '^\s*dont_blame_nrpe=0.*$'
+  #     line: 'dont_blame_nrpe=1'
+  #     backrefs: yes

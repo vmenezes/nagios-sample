@@ -1,0 +1,10 @@
+---
+  - name: Install Nagios3
+    apt: name=nagios3
+    tags:
+      - install
+  
+  - name: Install Nagios NRPE plugin
+    apt: name=nagios-nrpe-plugin
+    tags:
+      - install

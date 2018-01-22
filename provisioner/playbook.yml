@@ -1,0 +1,21 @@
+---
+- name: Setup NRPE plugin on monitored clients
+  hosts: monitored_clients
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+  become: yes
+  become_method: sudo
+  roles:
+    - nrpe_server
+    - check_restart_required
+
+# - name: Setup Nagios3 server with NRPE plugin
+#   hosts: nagios3_server
+#   vars:
+#     ansible_python_interpreter: "/usr/bin/python3"
+#   become: yes
+#   become_method: sudo
+#   roles:
+#     - nagios3_server
+#     - check_restart_required
+#     - add_nagios_clients
