@@ -19,15 +19,23 @@
     notify:
     - restart Nagios3 server
 
-  - name: Append check_restart_required plugin to local Nagios3 commands
+  - name: Append custom check restart required plugin to local Nagios3 commands
     blockinfile:
       path: /etc/nagios3/commands.cfg
       block: |
-        # check-restart-required
+        # Monitor restart required on local server running Nagios3
         define command{
-          command_name  check_restart_required
+          command_name  check_local_restart_required
           command_line  /usr/lib/nagios/plugins/check_restart_required 
         }
+
+        # Monitor restart required on clients
+        define command{
+          command_name  check_restart_required
+          command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required
+        }
+    notify:
+    - restart Nagios3 server
 
   - name: Monitor check_restart_required of Nagios3 local server
     blockinfile:
@@ -38,7 +46,7 @@
                 use                             generic-service         ; Name of service template to use
                 host_name                       localhost
                 service_description             System Restart Required
-                check_command                   check_restart_required
+                check_command                   check_local_restart_required
                 }
     notify:
     - restart Nagios3 server
