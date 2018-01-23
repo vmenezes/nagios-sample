@@ -50,3 +50,21 @@
                 }
     notify:
     - restart Nagios3 server
+
+  - name: Add monitoring of cli-01
+    vars:
+      cli_hostname: cli-01
+      cli_ip: 33.33.33.101
+    template: src=cli-service-cfg
+      dest=/etc/nagios3/conf.d/cli-01.cfg
+    notify:
+    - restart Nagios3 server
+
+  - name: Add monitoring of cli-01
+    vars:
+      cli_hostname: cli-02
+      cli_ip: 33.33.33.102
+    template: src=cli-service-cfg
+      dest=/etc/nagios3/conf.d/cli-02.cfg
+    notify:
+    - restart Nagios3 server

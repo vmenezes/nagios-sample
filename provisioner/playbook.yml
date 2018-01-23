@@ -18,4 +18,3 @@
   roles:
     - nagios3_server
     - check_restart_required
-#     - add_nagios_clients
