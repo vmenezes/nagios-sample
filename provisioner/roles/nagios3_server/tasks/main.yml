@@ -1,10 +1,44 @@
 ---
   - name: Install Nagios3
     apt: name=nagios3
-    tags:
-      - install
   
   - name: Install Nagios NRPE plugin
     apt: name=nagios-nrpe-plugin
-    tags:
-      - install
+
+  - name: Install PIP3 so that we can install Python passlib module
+    apt: pkg=python3-pip state=installed
+
+  - name: Install passlib to allow use of htpasswd
+    pip: name=passlib
+
+  - name: Add Nagios admin username
+    htpasswd:
+      path: /etc/nagios3/htpasswd.users
+      name: nagiosadmin
+      password: nagiospwd
+    notify:
+    - restart Nagios3 server
+
+  - name: Append check_restart_required plugin to local Nagios3 commands
+    blockinfile:
+      path: /etc/nagios3/commands.cfg
+      block: |
+        # check-restart-required
+        define command{
+          command_name  check_restart_required
+          command_line  /usr/lib/nagios/plugins/check_restart_required 
+        }
+
+  - name: Monitor check_restart_required of Nagios3 local server
+    blockinfile:
+      path: /etc/nagios3/conf.d/localhost_nagios2.cfg
+      block: |
+        # Custom check for system restart required.
+        define service{
+                use                             generic-service         ; Name of service template to use
+                host_name                       localhost
+                service_description             System Restart Required
+                check_command                   check_restart_required
+                }
+    notify:
+    - restart Nagios3 server

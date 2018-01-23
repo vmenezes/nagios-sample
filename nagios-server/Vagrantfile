@@ -19,136 +19,139 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update
 
-    # Install Nagios
-    sudo DEBIAN_FRONTEND=noninteractive apt install -y nagios3 nagios-nrpe-plugin
+    sudo useradd myuser -p "$(openssl passwd mypwd)" -m -G sudo
+    echo "myuser ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/90-cloud-init-users
 
-    # To create Nagios users
-    sudo htpasswd -b -c /etc/nagios3/htpasswd.users nagiosadmin NAGIOS_PWD
+#     # Install Nagios
+#     sudo DEBIAN_FRONTEND=noninteractive apt install -y nagios3 nagios-nrpe-plugin
 
-    # Update password of Nagios user
-    # sudo htpasswd -b /etc/nagios3/htpasswd.users nagiosadmin NEW_NAGIOS_PWD
+#     # To create Nagios users
+#     sudo htpasswd -b -c /etc/nagios3/htpasswd.users nagiosadmin NAGIOS_PWD
 
-    ############################
-    ### Create custom plugin ###
-    ############################
-    sudo touch /usr/lib/nagios/plugins/check_local_restart_required
-    echo "#!/usr/bin/env python3
+#     # Update password of Nagios user
+#     # sudo htpasswd -b /etc/nagios3/htpasswd.users nagiosadmin NEW_NAGIOS_PWD
 
-import os, socket
+#     ############################
+#     ### Create custom plugin ###
+#     ############################
+#     sudo touch /usr/lib/nagios/plugins/check_local_restart_required
+#     echo "#!/usr/bin/env python3
 
-def check_restart_required():
-    if os.path.exists('/var/run/reboot-required'):
-        print('*** System restart required *** ')
-        exit(2)
-    print('OK, no system restart needed')
-    exit(0)
+# import os, socket
+
+# def check_restart_required():
+#     if os.path.exists('/var/run/reboot-required'):
+#         print('*** System restart required *** ')
+#         exit(2)
+#     print('OK, no system restart needed')
+#     exit(0)
 
 
-if __name__ == '__main__':
-    check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_local_restart_required
-    ############################
-    #### End creating plugin ###
-    ############################
+# if __name__ == '__main__':
+#     check_restart_required()" | sudo tee /usr/lib/nagios/plugins/check_local_restart_required
+#     ############################
+#     #### End creating plugin ###
+#     ############################
 
-    # Fix permission of plugin
-    sudo chmod a+x /usr/lib/nagios/plugins/check_local_restart_required
+#     # Fix permission of plugin
+#     sudo chmod a+x /usr/lib/nagios/plugins/check_local_restart_required
 
-    # Enable command check_local_restart_required to use our custom plugin
-    echo "
-# 'check-restart-required'
-define command{
-  command_name  check_local_restart_required
-  command_line  /usr/lib/nagios/plugins/check_local_restart_required 
-}
-" | sudo tee -a /etc/nagios3/commands.cfg
+#     # Enable command check_local_restart_required to use our custom plugin
+#     echo "
+# # 'check-restart-required'
+# define command{
+#   command_name  check_local_restart_required
+#   command_line  /usr/lib/nagios/plugins/check_local_restart_required 
+# }
+# " | sudo tee -a /etc/nagios3/commands.cfg
 
-    # Add check_local_restart_required service check to Nagios3 server(localhost)
-    echo "
-# Custom check for system restart required.
-define service{
-        use                             generic-service         ; Name of service template to use
-        host_name                       localhost
-        service_description             System Restart Required
-                check_command                   check_local_restart_required
-        }" | sudo tee -a /etc/nagios3/conf.d/localhost_nagios2.cfg
+#     # Add check_local_restart_required service check to Nagios3 server(localhost)
+#     echo "
+# # Custom check for system restart required.
+# define service{
+#         use                             generic-service         ; Name of service template to use
+#         host_name                       localhost
+#         service_description             System Restart Required
+#                 check_command                   check_local_restart_required
+#         }" | sudo tee -a /etc/nagios3/conf.d/localhost_nagios2.cfg
 
-    # Add command to check restart required on remote servers thru NRPE
-    echo "
-# 'check-restart-required'
-define command{
-  command_name  check_restart_required
-  command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required 
-}" | sudo tee -a /etc/nagios3/commands.cfg
+#     # Add command to check restart required on remote servers thru NRPE
+#     echo "
+# # 'check-restart-required'
+# define command{
+#   command_name  check_restart_required
+#   command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required 
+# }" | sudo tee -a /etc/nagios3/commands.cfg
 
-    # Create config file to monitor cli-01 server
-    sudo touch /etc/nagios3/conf.d/cli-01.cfg
+#     # Create config file to monitor cli-01 server
+#     sudo touch /etc/nagios3/conf.d/cli-01.cfg
 
-    echo "define host{
-        use                     generic-host            ; Name of host template to use
-        host_name               cli-01
-        alias                   cli-01
-        address                 33.33.33.101
-        }
+#     echo "define host{
+#         use                     generic-host            ; Name of host template to use
+#         host_name               cli-01
+#         alias                   cli-01
+#         address                 33.33.33.101
+#         }
 
-# Define a service to check the disk space of the root partition
-# on the local machine.  Warning if < 20% free, critical if
-# < 10% free space on partition.
+# # Define a service to check the disk space of the root partition
+# # on the local machine.  Warning if < 20% free, critical if
+# # < 10% free space on partition.
 
-#define service{
-#        use                             generic-service         ; Name of service template to use
-#        host_name                       cli-01
-#        service_description             Disk Space
-#        check_command                   check_nrpe!check_sda1!20%!10%
-#        }
-#define service{
-#        use                             generic-service         ; Name of service template to use
-#        host_name                       cli-01
-#        service_description             Disk Space
-#        check_command                   check_disk!20!10!/dev/sda1
-#        }
+# #define service{
+# #        use                             generic-service         ; Name of service template to use
+# #        host_name                       cli-01
+# #        service_description             Disk Space
+# #        check_command                   check_nrpe!check_sda1!20%!10%
+# #        }
+# #define service{
+# #        use                             generic-service         ; Name of service template to use
+# #        host_name                       cli-01
+# #        service_description             Disk Space
+# #        check_command                   check_disk!20!10!/dev/sda1
+# #        }
 
-# Define a service to check the number of currently logged in
-# users on the local machine.  Warning if > 20 users, critical
-# if > 50 users.
+# # Define a service to check the number of currently logged in
+# # users on the local machine.  Warning if > 20 users, critical
+# # if > 50 users.
 
-define service{
-        use                             generic-service         ; Name of service template to use
-        host_name                       cli-01
-        service_description             Current Users
-        check_command                   check_nrpe!check_users
-        }
+# define service{
+#         use                             generic-service         ; Name of service template to use
+#         host_name                       cli-01
+#         service_description             Current Users
+#         check_command                   check_nrpe!check_users
+#         }
 
-# Define a service to check the number of currently running procs
-# on the local machine.  Warning if > 250 processes, critical if
-# > 400 processes.
+# # Define a service to check the number of currently running procs
+# # on the local machine.  Warning if > 250 processes, critical if
+# # > 400 processes.
 
-define service{
-        use                             generic-service         ; Name of service template to use
-        host_name                       cli-01
-        service_description             Total Processes
-    check_command                   check_nrpe!check_total_procs!250!400
-        }
+# define service{
+#         use                             generic-service         ; Name of service template to use
+#         host_name                       cli-01
+#         service_description             Total Processes
+#     check_command                   check_nrpe!check_total_procs!250!400
+#         }
 
-# Define a service to check the load on the local machine. 
+# # Define a service to check the load on the local machine. 
 
-define service{
-        use                             generic-service         ; Name of service template to use
-        host_name                       cli-01
-        service_description             Current Load
-    check_command                   check_total_load!15,10,5!30,25,20
-        }
+# define service{
+#         use                             generic-service         ; Name of service template to use
+#         host_name                       cli-01
+#         service_description             Current Load
+#     check_command                   check_total_load!15,10,5!30,25,20
+#         }
 
-# Custom check for system restart required.
-define service{
-        use                             generic-service         ; Name of service template to use
-        host_name                       cli-01
-        service_description             System Restart Required
-                check_command                   check_restart_required
-        }
-" | sudo tee /etc/nagios3/conf.d/cli-01.cfg
+# # Custom check for system restart required.
+# define service{
+#         use                             generic-service         ; Name of service template to use
+#         host_name                       cli-01
+#         service_description             System Restart Required
+#                 check_command                   check_restart_required
+#         }
+# " | sudo tee /etc/nagios3/conf.d/cli-01.cfg
 
-    # Restart Nagios3 service
-    sudo service nagios3 restart
+#     # Restart Nagios3 service
+#     sudo service nagios3 restart
 
   SHELL
 

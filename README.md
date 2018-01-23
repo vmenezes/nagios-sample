@@ -1,7 +1,14 @@
 # nagios-sample
 
 ```
-cd provisioner
+git clone https://github.com/vmenezes/nagios-sample.git
+cd nagios-sample/cli-01
+vagrant up
+cd ../cli-02
+vagrant up
+cd ../nagios-server
+vagrant up
+cd ../provisioner
 vagrant up
 vagrant ssh
 mkvirtualenv venv

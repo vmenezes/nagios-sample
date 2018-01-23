@@ -1,5 +1,5 @@
 ---
   - name: Copy check_restart_required plugin to Nagios3 server
     template: src=check_restart_required.py
-      dest=/usr/lib/nagios/plugins/check_local_restart_required
+      dest=/usr/lib/nagios/plugins/check_restart_required
       mode='a+x'
