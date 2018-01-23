@@ -34,6 +34,20 @@
           command_name  check_restart_required
           command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required
         }
+
+        define command {
+          command_name    check_nrpe_users
+          command_line    $USER1$/check_nrpe -H $HOSTADDRESS$ -c "check_users"
+        }
+        define command {
+          command_name    check_nrpe_load
+          command_line    $USER1$/check_nrpe -H $HOSTADDRESS$ -c "check_load"
+        }
+        define command {
+          command_name    check_nrpe_procs
+          command_line    $USER1$/check_nrpe -H $HOSTADDRESS$ -c "check_total_procs"
+        }
+
     notify:
     - restart Nagios3 server
 

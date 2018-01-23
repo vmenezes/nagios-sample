@@ -26,37 +26,37 @@ define host{
 # # users on the local machine.  Warning if > 20 users, critical
 # # if > 50 users.
 
-# define service{
-#         use                             generic-service         ; Name of service template to use
-#         host_name                       {{ cli_hostname}}
-#         service_description             Current Users
-#         check_command                   check_nrpe!check_users
-#         }
+ define service{
+         use                             generic-service         ; Name of service template to use
+         host_name                       {{ cli_hostname}}
+         service_description             Current Users
+         check_command                   check_nrpe_users
+         }
 
 # # Define a service to check the number of currently running procs
 # # on the local machine.  Warning if > 250 processes, critical if
 # # > 400 processes.
 
-# define service{
-#         use                             generic-service         ; Name of service template to use
-#         host_name                       {{ cli_hostname}}
-#         service_description             Total Processes
-#     check_command                   check_nrpe!check_total_procs!250!400
-#         }
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       {{ cli_hostname}}
+        service_description             Total Processes
+        check_command                   check_nrpe_procs
+        }
 
 # # Define a service to check the load on the local machine. 
 
-# define service{
-#         use                             generic-service         ; Name of service template to use
-#         host_name                       {{ cli_hostname}}
-#         service_description             Current Load
-#     check_command                   check_total_load!15,10,5!30,25,20
-#         }
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       {{ cli_hostname}}
+        service_description             Current Load
+        check_command                   check_nrpe_load
+        }
 
 # # Custom check for system restart required.
- define service{
-         use                             generic-service         ; Name of service template to use
-         host_name                       {{ cli_hostname}}
-         service_description             System Restart Required
-         check_command                   check_restart_required
-         }
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       {{ cli_hostname}}
+        service_description             System Restart Required
+        check_command                   check_restart_required
+        }
