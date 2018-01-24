@@ -29,10 +29,22 @@
           command_line  /usr/lib/nagios/plugins/check_restart_required 
         }
 
+        # Monitor security updates available on local server running Nagios3
+        define command{
+          command_name  check_local_security_updates
+          command_line  /usr/lib/nagios/plugins/check_security_updates
+        }
+
         # Monitor restart required on clients
         define command{
           command_name  check_restart_required
           command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_restart_required
+        }
+
+        # Monitor security updates available on clients
+        define command{
+          command_name  check_security_updates
+          command_line  $USER1$/check_nrpe -H $HOSTADDRESS$ -c check_security_updates
         }
 
         define command {
@@ -61,6 +73,13 @@
                 host_name                       localhost
                 service_description             System Restart Required
                 check_command                   check_local_restart_required
+                }
+        # Custom check for security updates available.
+        define service{
+                use                             generic-service         ; Name of service template to use
+                host_name                       localhost
+                service_description             Security updates available
+                check_command                   check_local_security_updates
                 }
     notify:
     - restart Nagios3 server

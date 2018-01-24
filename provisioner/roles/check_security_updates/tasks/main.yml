@@ -1,0 +1,5 @@
+---
+  - name: Copy check_security_update plugin to Nagios3 server
+    template: src=check_security_updates.py
+      dest=/usr/lib/nagios/plugins/check_security_updates
+      mode='a+x'

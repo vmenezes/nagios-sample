@@ -60,3 +60,11 @@ define service{
         service_description             System Restart Required
         check_command                   check_restart_required
         }
+
+# # Custom check for security updates available.
+define service{
+        use                             generic-service         ; Name of service template to use
+        host_name                       {{ cli_hostname}}
+        service_description             Security updates available
+        check_command                   check_security_updates
+        }
