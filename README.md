@@ -21,4 +21,8 @@ vi inventory
 ansible-playbook -i inventory ./playbook.yml
 # ansible-playbook -i inventory -l nagios3_server ./playbook.yml
 # ansible-playbook -i inventory -l monitored_clients ./playbook.yml
+exit
+cd ../nagios-server
+vagrant ssh
+/usr/lib/nagios/plugins/check_nrpe -H 33.33.33.101 -c check_users
 ```
