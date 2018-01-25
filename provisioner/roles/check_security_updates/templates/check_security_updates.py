@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 
-import os, socket
+import os
 
 
 def check_security_updates_available():
-    # updates_available_path = '/var/lib/update-notifier/updates-available'
-    # if os.path.exists(updates_available_path):
-    #     for line in open(updates_available_path, 'r'):
-    #         if line.find('security update') >= 0:
-    #             print(line.replace('\n', ' '))
-    print('X updates are security updates.')
-    exit(2)
-    # print('No security updates needed.')
-    # exit(0)
+    updates_available_path = '/var/lib/update-notifier/updates-available'
+    if os.path.exists(updates_available_path):
+        with open(updates_available_path, 'r') as f:
+            print(f.read())
 
 
 if __name__ == '__main__':
-    check_security_updates_available()
+    if os.geteuid() == 0:
+        check_security_updates_available()
+    else:
+        output = os.popen(
+            '/usr/bin/sudo /usr/bin/python3 /usr/lib/nagios/plugins/check_security_updates').read()
+        for line in output.split('\n'):
+            if line.find('security update') >= 0:
+                print(line)
+                exit(2)
+        print('No updates available')
+        exit(0)
 
 
 ##################

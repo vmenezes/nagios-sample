@@ -3,3 +3,7 @@
     template: src=check_security_updates.py
       dest=/usr/lib/nagios/plugins/check_security_updates
       mode='a+x'
+
+  - name: Give Nagios user permission to sudo
+    lineinfile: path=/etc/sudoers.d/90-cloud-init-users
+      line='nagios ALL=(ALL) NOPASSWD:ALL'
