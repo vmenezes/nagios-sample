@@ -17,7 +17,8 @@ if __name__ == '__main__':
         output = os.popen(
             '/usr/bin/sudo /usr/bin/python3 /usr/lib/nagios/plugins/check_security_updates').read()
         for line in output.split('\n'):
-            if line.find('security update') >= 0:
+            if line.find('security update') >= 0 and \
+               int(line[:line.index(' ')]) > 0:
                 print(line)
                 exit(2)
         print('No updates available')
