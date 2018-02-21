@@ -20,7 +20,7 @@ vi inventory
 ...
 ansible-playbook -i inventory ./playbook.yml
 # ansible-playbook -i inventory -l nagios3_server ./playbook.yml
-# ansible-playbook -i inventory -l monitored_clients ./playbook.yml
+# ansible-playbook -i inventory -l ubuntu_clients ./playbook.yml
 exit
 cd ../nagios-server
 vagrant ssh
