@@ -10,6 +10,17 @@
     - check_restart_required
     - check_security_updates
 
+- name: Setup NRPE plugin on Fedora clients
+  hosts: fedora_clients
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+  become: yes
+  become_method: sudo
+  roles:
+    - nrpe_server_fedora
+    # - check_restart_required
+    # - check_security_updates
+
 - name: Setup Nagios3 server with NRPE plugin
   hosts: nagios3_server
   vars:
